@@ -128,8 +128,16 @@ export const TOOL_DEFINITIONS = [
   },
   {
     type: "function",
+    name: "resume_ordering",
+    description:
+      "Close checkout and go back to ordering, keeping the cart as-is — use when the customer wants to add or change something before finishing checkout (e.g. 'wait, let me also get fries').",
+    parameters: { type: "object", properties: {} },
+  },
+  {
+    type: "function",
     name: "clear_cart",
-    description: "Empty the cart completely, e.g. if the customer wants to start over.",
+    description:
+      "Empty the cart completely and close checkout if it's open — use when the customer wants to start over, or is done after their order was confirmed (e.g. they say bye or want a new order).",
     parameters: { type: "object", properties: {} },
   },
 ];
@@ -218,6 +226,10 @@ export function createToolHandlers(
       }
       const orderNumber = cart.confirmOrder();
       return { ...summarize(cart), order_number: orderNumber };
+    },
+    resume_ordering: () => {
+      cart.setStage("ordering");
+      return summarize(cart);
     },
     clear_cart: () => {
       cart.clearCart();

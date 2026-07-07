@@ -14,10 +14,12 @@ export function KioskScreen() {
   const [category, setCategory] = useState<CategoryId>("combos");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  // Voice tool calls (start_checkout) drive cart.state.stage; the manual
-  // "Checkout" button does the same, so both paths open this one modal.
+  // cart.state.stage is the single source of truth for the modal, so Joy can
+  // open AND close it by voice (start_checkout / resume_ordering / clear_cart
+  // all set stage), not just the manual "Checkout" button and X.
   useEffect(() => {
     if (cart.state.stage === "checkout") setCheckoutOpen(true);
+    else if (cart.state.stage === "ordering") setCheckoutOpen(false);
   }, [cart.state.stage]);
 
   const handleCloseCheckout = () => {
