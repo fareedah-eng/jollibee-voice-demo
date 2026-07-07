@@ -17,7 +17,7 @@ export function CartDrawer({ onCheckout }: { onCheckout: () => void }) {
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {state.lines.length === 0 ? (
           <p className="text-sm text-neutral-400 text-center py-10">
-            Your cart is empty. Say or tap what you&apos;d like to order!
+            Your cart is empty. Tap &ldquo;Tap to order&rdquo; above and tell Joy what you&apos;d like!
           </p>
         ) : (
           state.lines.map((line) => (

@@ -10,8 +10,17 @@ const TAG_STYLES: Record<string, string> = {
   spicy: "bg-red-700 text-white",
 };
 
+function InCartBadge({ qty }: { qty: number | undefined }) {
+  if (!qty) return null;
+  return (
+    <span className="rounded-full bg-jb-red/10 text-jb-red-dark text-xs font-bold px-2.5 py-1">
+      ✓ {qty} in order
+    </span>
+  );
+}
+
 export function MenuGrid({ category }: { category: CategoryId }) {
-  const { addItem, addCombo, findLineByRef } = useCart();
+  const { findLineByRef } = useCart();
 
   if (category === "combos") {
     return (
@@ -21,7 +30,7 @@ export function MenuGrid({ category }: { category: CategoryId }) {
           return (
             <div
               key={combo.id}
-              className="rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow"
+              className="rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col shadow-sm"
             >
               <div className="relative h-36">
                 <MenuThumb
@@ -46,12 +55,7 @@ export function MenuGrid({ category }: { category: CategoryId }) {
                 </p>
                 <div className="flex items-center justify-between pt-2">
                   <span className="font-bold text-jb-red-dark">₱{combo.price}</span>
-                  <button
-                    onClick={() => addCombo(combo.id)}
-                    className="rounded-full bg-jb-red text-white text-xs font-bold px-3 py-1.5 hover:bg-jb-red-dark transition-colors"
-                  >
-                    {line ? `Add (${line.qty} in cart)` : "Add to cart"}
-                  </button>
+                  <InCartBadge qty={line?.qty} />
                 </div>
               </div>
             </div>
@@ -70,7 +74,7 @@ export function MenuGrid({ category }: { category: CategoryId }) {
         return (
           <div
             key={item.id}
-            className="rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow"
+            className="rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col shadow-sm"
           >
             <div className="relative h-36">
               <MenuThumb
@@ -95,12 +99,7 @@ export function MenuGrid({ category }: { category: CategoryId }) {
               </p>
               <div className="flex items-center justify-between pt-2">
                 <span className="font-bold text-jb-red-dark">₱{item.price}</span>
-                <button
-                  onClick={() => addItem(item.id)}
-                  className="rounded-full bg-jb-red text-white text-xs font-bold px-3 py-1.5 hover:bg-jb-red-dark transition-colors"
-                >
-                  {line ? `Add (${line.qty} in cart)` : "Add to cart"}
-                </button>
+                <InCartBadge qty={line?.qty} />
               </div>
             </div>
           </div>

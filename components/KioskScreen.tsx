@@ -43,7 +43,12 @@ export function KioskScreen() {
 
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
         <section className="p-4 sm:p-6 space-y-4">
-          <CategoryTabs active={category} onChange={setCategory} />
+          <div>
+            <CategoryTabs active={category} onChange={setCategory} />
+            <p className="text-xs text-neutral-400 mt-2">
+              Browse the menu here — order everything by voice with Joy, on the right.
+            </p>
+          </div>
           <MenuGrid category={category} />
         </section>
 
