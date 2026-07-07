@@ -22,11 +22,6 @@ export function KioskScreen() {
     else if (cart.state.stage === "ordering") setCheckoutOpen(false);
   }, [cart.state.stage]);
 
-  const handleCloseCheckout = () => {
-    setCheckoutOpen(false);
-    if (cart.state.stage === "checkout") cart.setStage("ordering");
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-jb-red text-white px-4 sm:px-6 py-4 flex items-center justify-between shadow-md">
@@ -57,12 +52,12 @@ export function KioskScreen() {
         <aside className="border-t lg:border-t-0 lg:border-l border-neutral-200 bg-white lg:sticky lg:top-0 lg:h-screen flex flex-col">
           <VoicePanel onOpenCheckout={() => cart.setStage("checkout")} />
           <div className="flex-1 min-h-0">
-            <CartDrawer onCheckout={() => cart.setStage("checkout")} />
+            <CartDrawer />
           </div>
         </aside>
       </main>
 
-      {checkoutOpen && <CheckoutModal onClose={handleCloseCheckout} />}
+      {checkoutOpen && <CheckoutModal />}
     </div>
   );
 }

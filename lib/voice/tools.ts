@@ -123,7 +123,8 @@ export const TOOL_DEFINITIONS = [
   {
     type: "function",
     name: "confirm_order",
-    description: "Finalize and place the order. Only call this after a payment method has been set.",
+    description:
+      "Finalize and place the order for cash or QR payment, after a payment method has been set. Do NOT call this for card — card payments are completed by the customer on-screen and confirm automatically.",
     parameters: { type: "object", properties: {} },
   },
   {
@@ -223,6 +224,12 @@ export function createToolHandlers(
     confirm_order: () => {
       if (!cart.state.paymentMethod) {
         return { error: "No payment method set yet — ask how they'd like to pay first." };
+      }
+      if (cart.state.paymentMethod === "card") {
+        return {
+          error:
+            "Card payments are completed on-screen by the customer, not by you. Tell them to enter their card details on the gateway shown — do not call confirm_order for card payments.",
+        };
       }
       const orderNumber = cart.confirmOrder();
       return { ...summarize(cart), order_number: orderNumber };
