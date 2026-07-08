@@ -14,7 +14,7 @@ function InCartBadge({ qty }: { qty: number | undefined }) {
   if (!qty) return null;
   return (
     <span className="rounded-full bg-jb-red/10 text-jb-red-dark text-xs font-bold px-2.5 py-1">
-      ✓ {qty} in order
+      ✓ {qty} sa order
     </span>
   );
 }

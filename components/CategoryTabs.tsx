@@ -23,7 +23,7 @@ export function CategoryTabs({
                 : "bg-white text-neutral-700 border-neutral-200 hover:border-jb-red/40"
             }`}
           >
-            {cat.label}
+            {cat.labelTl}
           </button>
         );
       })}

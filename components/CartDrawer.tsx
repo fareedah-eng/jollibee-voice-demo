@@ -12,16 +12,16 @@ export function CartDrawer() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
-        <h2 className="font-bold text-lg">Your Order</h2>
+        <h2 className="font-bold text-lg">Ang Order Niyo</h2>
         <span className="text-sm text-neutral-500">
-          {state.lines.reduce((n, l) => n + l.qty, 0)} item(s)
+          {state.lines.reduce((n, l) => n + l.qty, 0)} item
         </span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {state.lines.length === 0 ? (
           <p className="text-sm text-neutral-400 text-center py-10">
-            Your cart is empty. Tap &ldquo;Tap to order&rdquo; above and tell Joy what you&apos;d like!
+            Wala pa kayong order. I-tap si Joy sa taas at sabihin ang gusto niyo!
           </p>
         ) : (
           state.lines.map((line) => (
@@ -50,12 +50,12 @@ export function CartDrawer() {
           </div>
         )}
         <div className="flex justify-between font-bold text-base pt-1">
-          <span>Total</span>
+          <span>Kabuuan</span>
           <span>₱{totals.total}</span>
         </div>
         {state.lines.length > 0 && (
           <p className="text-xs text-neutral-400 text-center pt-2">
-            Tell Joy when you&apos;re ready to check out.
+            Sabihin lang kay Joy kapag handa na kayong mag-checkout.
           </p>
         )}
       </div>

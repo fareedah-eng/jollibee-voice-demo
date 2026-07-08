@@ -134,7 +134,7 @@ export const DISCOUNT_RATES: Record<DiscountType, number> = {
 };
 
 export const DISCOUNT_LABELS: Record<DiscountType, string> = {
-  none: "No discount",
+  none: "Walang discount",
   senior: "Senior Citizen (20%)",
   pwd: "PWD (20%)",
   promo10: "Promo code (10%)",

@@ -1,8 +1,6 @@
 "use client";
 
-import { DISCOUNT_LABELS, type DiscountType, useCart } from "@/lib/cart";
-
-const DISCOUNT_OPTIONS: DiscountType[] = ["none", "senior", "pwd", "promo10"];
+import { DISCOUNT_LABELS, useCart } from "@/lib/cart";
 
 const PAYMENT_LABELS: Record<string, { label: string; icon: string }> = {
   cash: { label: "Cash", icon: "💵" },
@@ -52,21 +50,10 @@ export function CheckoutModal() {
           </div>
 
           {!state.discountDecided && (
-            <>
-              <p className="text-sm text-neutral-500">
-                Sabihin kay Joy kung may Senior Citizen / PWD ID o promo code kayo.
-              </p>
-              <div className="space-y-1.5">
-                {DISCOUNT_OPTIONS.map((opt) => (
-                  <div
-                    key={opt}
-                    className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-400"
-                  >
-                    {DISCOUNT_LABELS[opt]}
-                  </div>
-                ))}
-              </div>
-            </>
+            <p className="text-sm text-neutral-500">
+              Sabihin kay Joy kung may Senior Citizen / PWD ID kayo, o ibigay ang promo code
+              niyo kung mayroon.
+            </p>
           )}
 
           {state.discountDecided && (

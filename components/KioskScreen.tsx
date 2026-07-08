@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CategoryTabs } from "./CategoryTabs";
 import { MenuGrid } from "./MenuGrid";
 import { CartDrawer } from "./CartDrawer";
@@ -12,15 +12,11 @@ import type { CategoryId } from "@/lib/menu";
 export function KioskScreen() {
   const cart = useCart();
   const [category, setCategory] = useState<CategoryId>("combos");
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  // cart.state.stage is the single source of truth for the modal, so Joy can
-  // open AND close it by voice (start_checkout / resume_ordering / clear_cart
-  // all set stage), not just the manual "Checkout" button and X.
-  useEffect(() => {
-    if (cart.state.stage === "checkout") setCheckoutOpen(true);
-    else if (cart.state.stage === "ordering") setCheckoutOpen(false);
-  }, [cart.state.stage]);
+  // Stage is the single source of truth: the modal is open for checkout AND
+  // the confirmation screen, closed only while ordering — so Joy's tool calls
+  // (start_checkout / resume_ordering / clear_cart) fully control it.
+  const checkoutOpen = cart.state.stage !== "ordering";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -32,7 +28,7 @@ export function KioskScreen() {
           <div>
             <h1 className="font-extrabold text-lg leading-tight">Jollibee</h1>
             <p className="text-xs text-white/80 leading-tight">
-              AI Voice Ordering · English / Tagalog
+              AI Voice Ordering · Tagalog / English
             </p>
           </div>
         </div>
@@ -43,7 +39,7 @@ export function KioskScreen() {
           <div>
             <CategoryTabs active={category} onChange={setCategory} />
             <p className="text-xs text-neutral-400 mt-2">
-              Browse the menu here — order everything by voice with Joy, on the right.
+              Tingnan ang menu dito — lahat ng order, sabihin lang kay Joy sa kanan.
             </p>
           </div>
           <MenuGrid category={category} />
