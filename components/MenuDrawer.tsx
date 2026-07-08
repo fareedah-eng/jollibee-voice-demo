@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { CATEGORIES, COMBOS, MENU_ITEMS } from "@/lib/menu";
 import { useCart } from "@/lib/cart";
 import { MenuThumb } from "./MenuThumb";
@@ -18,6 +19,8 @@ interface Row {
  */
 export function MenuDrawer() {
   const { findLineByRef } = useCart();
+  // Mobile only: the drawer is a bottom sheet, collapsed to a handle by default.
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const groups: Array<{ label: string; rows: Row[] }> = CATEGORIES.map((cat) => ({
     label: cat.labelTl,
@@ -33,8 +36,37 @@ export function MenuDrawer() {
   })).filter((g) => g.rows.length > 0);
 
   return (
-    <aside className="bg-background text-foreground border-l border-[#EDE7DD] flex flex-col min-h-0">
-      <div className="px-4 pt-3.5 pb-2 flex items-baseline justify-between shrink-0">
+    <>
+      {/* mobile scrim behind the opened sheet */}
+      {sheetOpen && (
+        <button
+          aria-label="Isara ang menu"
+          onClick={() => setSheetOpen(false)}
+          className="fixed inset-0 z-30 bg-black/30 lg:hidden"
+        />
+      )}
+
+      <aside
+        className={`bg-background text-foreground flex flex-col min-h-0
+          fixed inset-x-0 bottom-0 z-40 h-[78vh] rounded-t-3xl shadow-[0_-16px_50px_-20px_rgba(0,0,0,0.45)]
+          transition-transform duration-300 ease-out
+          ${sheetOpen ? "translate-y-0" : "translate-y-[calc(100%-84px)]"}
+          lg:static lg:z-auto lg:h-auto lg:translate-y-0 lg:rounded-none lg:shadow-none lg:border-l lg:border-[#EDE7DD]`}
+      >
+        {/* drag handle — mobile only */}
+        <button
+          onClick={() => setSheetOpen((v) => !v)}
+          aria-expanded={sheetOpen}
+          aria-label={sheetOpen ? "Isara ang menu" : "Buksan ang menu"}
+          className="lg:hidden pt-2.5 pb-1 flex flex-col items-center gap-1.5 shrink-0"
+        >
+          <span className="w-11 h-1.5 rounded-full bg-neutral-300" />
+          <span className="text-[11px] font-semibold text-neutral-500">
+            {sheetOpen ? "Menu — i-tap para isara" : "Menu"}
+          </span>
+        </button>
+
+      <div className="px-4 pt-1.5 lg:pt-3.5 pb-2 hidden lg:flex items-baseline justify-between shrink-0">
         <h2 className="font-bold text-[13.5px]">Menu</h2>
         <span className="text-[10.5px] text-neutral-400">sabihin lang ang pangalan</span>
       </div>
@@ -77,6 +109,7 @@ export function MenuDrawer() {
           </div>
         ))}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

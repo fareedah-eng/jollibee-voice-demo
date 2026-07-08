@@ -81,7 +81,7 @@ export function KioskScreen() {
       <TranscriptPanel entries={transcript} />
 
       {/* ================= voice stage ================= */}
-      <section className="relative flex-1 lg:flex-none bg-gradient-to-br from-jb-red to-jb-red-dark text-white flex flex-col min-h-0">
+      <section className="relative flex-1 lg:flex-none bg-gradient-to-br from-jb-red to-jb-red-dark text-white flex flex-col min-h-0 pb-[88px] lg:pb-0">
         <header className="flex items-center justify-between px-5 py-4 shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-lg">
@@ -96,7 +96,8 @@ export function KioskScreen() {
           )}
         </header>
 
-        <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-6 pb-6 overflow-y-auto">
+        <div className="flex-1 min-h-0 flex flex-col px-6 pb-6 overflow-y-auto">
+          <div className="my-auto flex flex-col items-center gap-5 w-full py-2">
           <VoiceOrb
             status={status}
             onClick={() => (isActive ? voice.stop() : voice.start())}
@@ -131,6 +132,7 @@ export function KioskScreen() {
               )}
             </>
           )}
+          </div>
         </div>
 
         {isActive && (
