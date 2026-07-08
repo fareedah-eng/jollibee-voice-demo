@@ -21,18 +21,18 @@ export function CheckoutModal() {
   const { state, totals, confirmOrder } = useCart();
 
   const title = (() => {
-    if (state.stage === "confirmed") return "Order confirmed!";
-    if (!state.discountDecided) return "Checking for a discount…";
-    if (!state.paymentMethod) return "Choosing a payment method…";
-    if (state.paymentMethod === "card") return "Pay by card";
-    return "Confirming your order…";
+    if (state.stage === "confirmed") return "Kumpirmado na ang order!";
+    if (!state.discountDecided) return "May discount po ba?";
+    if (!state.paymentMethod) return "Paano po kayo magbabayad?";
+    if (state.paymentMethod === "card") return "Bayad gamit ang card";
+    return "Kinukumpirma ang order…";
   })();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
         <div className="bg-jb-red text-white px-5 py-4">
-          <h2 className="font-bold text-lg">{title}</h2>
+          <h2 className="font-display font-bold text-lg tracking-tight">{title}</h2>
         </div>
 
         <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
@@ -54,7 +54,7 @@ export function CheckoutModal() {
           {!state.discountDecided && (
             <>
               <p className="text-sm text-neutral-500">
-                Tell Joy if you have a Senior Citizen / PWD ID or a promo code.
+                Sabihin kay Joy kung may Senior Citizen / PWD ID o promo code kayo.
               </p>
               <div className="space-y-1.5">
                 {DISCOUNT_OPTIONS.map((opt) => (
@@ -79,7 +79,7 @@ export function CheckoutModal() {
           {state.discountDecided && !state.paymentMethod && (
             <>
               <p className="text-sm text-neutral-500">
-                Tell Joy how you&apos;d like to pay — cash, card, or QR.
+                Sabihin kay Joy kung paano kayo magbabayad — cash, card, o QR.
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {Object.entries(PAYMENT_LABELS).map(([id, opt]) => (
@@ -97,7 +97,7 @@ export function CheckoutModal() {
 
           {state.paymentMethod && state.stage !== "confirmed" && (
             <div className="border-t border-dashed border-neutral-300 pt-3 flex justify-between font-bold">
-              <span>Total due</span>
+              <span>Babayaran</span>
               <span>₱{totals.total}</span>
             </div>
           )}
@@ -105,14 +105,14 @@ export function CheckoutModal() {
           {state.paymentMethod === "qr" && state.stage !== "confirmed" && (
             <div className="flex flex-col items-center gap-2 py-3">
               <div className="w-36 h-36 rounded-lg bg-[repeating-conic-gradient(#241412_0_25%,white_0_50%)] bg-[length:12px_12px] border-4 border-neutral-200" />
-              <p className="text-xs text-neutral-500">Scan to pay · demo QR</p>
-              <p className="text-xs text-neutral-400">Joy will confirm once payment is done.</p>
+              <p className="text-xs text-neutral-500">I-scan para magbayad · demo QR</p>
+              <p className="text-xs text-neutral-400">Kukumpirmahin ni Joy kapag bayad na.</p>
             </div>
           )}
 
           {state.paymentMethod === "cash" && state.stage !== "confirmed" && (
             <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-center text-xs text-neutral-500">
-              Please pay at the counter. Joy will confirm your order.
+              Magbayad po sa counter. Kukumpirmahin ni Joy ang order niyo.
             </div>
           )}
 
@@ -138,7 +138,7 @@ export function CheckoutModal() {
                 onClick={() => confirmOrder()}
                 className="w-full rounded-full bg-jb-red text-white font-bold py-3 hover:bg-jb-red-dark"
               >
-                Pay ₱{totals.total}
+                Bayaran — ₱{totals.total}
               </button>
             </div>
           )}
@@ -148,14 +148,14 @@ export function CheckoutModal() {
               <div className="text-5xl">✅</div>
               <p className="font-bold text-xl">Order #{state.orderNumber}</p>
               <p className="text-sm text-neutral-500">
-                Thank you! Please proceed to the counter to pick up your order.
+                Salamat po! Pumunta lang sa counter para kunin ang order niyo.
               </p>
               <div className="flex justify-between font-bold border-t border-dashed border-neutral-300 pt-3">
-                <span>Total paid</span>
+                <span>Nabayaran</span>
                 <span>₱{totals.total}</span>
               </div>
               <p className="text-xs text-neutral-400 pt-2">
-                Tell Joy when you&apos;d like to start a new order.
+                Sabihin lang kay Joy kung gusto niyong mag-order ulit.
               </p>
             </div>
           )}

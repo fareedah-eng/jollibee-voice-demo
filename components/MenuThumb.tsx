@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { CategoryId } from "@/lib/menu";
 
 const CATEGORY_EMOJI: Record<CategoryId, string> = {
@@ -28,14 +28,8 @@ export function MenuThumb({
   className?: string;
 }) {
   const [errored, setErrored] = useState(false);
-  // Deferred until after mount: an <img src> present in the initial SSR HTML
-  // starts fetching before React hydrates, so a fast local 404 fires onError
-  // before the listener is attached and the fallback never shows. Mounting
-  // the real <img> only on the client guarantees onError is always caught.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
-  if (errored || !mounted) {
+  if (errored) {
     return (
       <div
         className={`flex items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200 text-4xl ${className}`}
@@ -46,12 +40,17 @@ export function MenuThumb({
     );
   }
 
-  // eslint-disable-next-line @next/next/no-img-element
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}
       className={`object-cover ${className}`}
+      // An SSR'd <img> can 404 before hydration attaches onError, so also
+      // check on ref attach whether the load already failed silently.
+      ref={(el) => {
+        if (el && el.complete && el.naturalWidth === 0) setErrored(true);
+      }}
       onError={() => setErrored(true)}
     />
   );
