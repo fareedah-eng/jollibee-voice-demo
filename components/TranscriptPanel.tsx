@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { TranscriptEntry } from "@/lib/voice/useRealtimeVoice";
 
-/** Collapsible left panel with the running conversation, collapsed by default. */
+/** Collapsible left panel with the running conversation, open by default. */
 export function TranscriptPanel({ entries }: { entries: TranscriptEntry[] }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
