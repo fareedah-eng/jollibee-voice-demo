@@ -36,8 +36,6 @@ export interface Addon {
   name: string;
   price: number;
   category: "drink" | "side" | "dessert" | "upsize";
-  /** Reuses the matching menu item's photo where one exists. */
-  image?: string;
 }
 
 export interface Combo {
@@ -64,13 +62,13 @@ export const CATEGORIES: Category[] = [
 ];
 
 export const ADDONS: Addon[] = [
-  { id: "addon-coke-regular", name: "Coke Regular", price: 45, category: "drink", image: "/menu/coke-regular.png" },
-  { id: "addon-coke-float", name: "Coke Float", price: 60, category: "drink", image: "/menu/coke-float.png" },
-  { id: "addon-iced-tea", name: "Iced Tea", price: 45, category: "drink", image: "/menu/iced-tea.png" },
-  { id: "addon-fries-regular", name: "Regular Fries", price: 55, category: "side", image: "/menu/fries-regular.png" },
+  { id: "addon-coke-regular", name: "Coke Regular", price: 45, category: "drink" },
+  { id: "addon-coke-float", name: "Coke Float", price: 60, category: "drink" },
+  { id: "addon-iced-tea", name: "Iced Tea", price: 45, category: "drink" },
+  { id: "addon-fries-regular", name: "Regular Fries", price: 55, category: "side" },
   { id: "addon-gravy", name: "Extra Gravy", price: 25, category: "side" },
-  { id: "addon-peach-mango-pie", name: "Peach-Mango Pie", price: 45, category: "dessert", image: "/menu/peach-mango-pie.png" },
-  { id: "addon-sundae-chocolate", name: "Chocolate Sundae", price: 49, category: "dessert", image: "/menu/chocolate-sundae.png" },
+  { id: "addon-peach-mango-pie", name: "Peach-Mango Pie", price: 45, category: "dessert" },
+  { id: "addon-sundae-chocolate", name: "Chocolate Sundae", price: 49, category: "dessert" },
   { id: "addon-upsize-drink", name: "Upsize Drink", price: 15, category: "upsize" },
 ];
 

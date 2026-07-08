@@ -3,9 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { buildSystemInstructions } from "./prompt";
-import { createToolHandlers, TOOL_DEFINITIONS, type UpsellSuggestion } from "./tools";
+import { createToolHandlers, TOOL_DEFINITIONS } from "./tools";
 
 export type VoiceStatus = "idle" | "connecting" | "listening" | "speaking" | "error";
+
+interface TranscriptEntry {
+  id: number;
+  role: "user" | "assistant";
+  text: string;
+}
 
 interface RealtimeEvent {
   type: string;
@@ -29,22 +35,32 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
     cartRef.current = cart;
   }, [cart]);
 
+  const uiRef = useRef({ openCheckout });
+  useEffect(() => {
+    uiRef.current = { openCheckout };
+  }, [openCheckout]);
+
   const [status, setStatus] = useState<VoiceStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [liveCaption, setLiveCaption] = useState("");
-  const [lastUserText, setLastUserText] = useState("");
-  const [suggestions, setSuggestions] = useState<UpsellSuggestion[]>([]);
-
-  const uiRef = useRef({ openCheckout, onSuggest: setSuggestions });
-  useEffect(() => {
-    uiRef.current = { openCheckout, onSuggest: setSuggestions };
-  }, [openCheckout]);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const idCounterRef = useRef(0);
   const currentAssistantTextRef = useRef("");
+
+  const nextId = () => {
+    idCounterRef.current += 1;
+    return idCounterRef.current;
+  };
+
+  const pushTranscript = useCallback((role: "user" | "assistant", text: string) => {
+    if (!text.trim()) return;
+    setTranscript((prev) => [...prev.slice(-8), { id: nextId(), role, text }]);
+  }, []);
 
   const stop = useCallback(() => {
     dcRef.current?.close();
@@ -56,8 +72,6 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
     streamRef.current = null;
     audioElRef.current = null;
     setLiveCaption("");
-    setLastUserText("");
-    setSuggestions([]);
     setStatus("idle");
   }, []);
 
@@ -116,8 +130,6 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
             },
           })
         );
-        // Joy greets first — kick off a response before the customer says anything.
-        dc.send(JSON.stringify({ type: "response.create" }));
         setStatus("listening");
       });
 
@@ -133,15 +145,11 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
 
         switch (event.type) {
           case "input_audio_buffer.speech_started":
-            // Customer is talking — drop the overlay so the menu is visible again.
             setStatus("listening");
-            setSuggestions([]);
-            setLiveCaption("");
-            currentAssistantTextRef.current = "";
             break;
 
           case "conversation.item.input_audio_transcription.completed":
-            if (event.transcript) setLastUserText(event.transcript.trim());
+            if (event.transcript) pushTranscript("user", event.transcript);
             break;
 
           case "response.created":
@@ -156,6 +164,13 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
               currentAssistantTextRef.current += event.delta;
               setLiveCaption(currentAssistantTextRef.current);
             }
+            break;
+
+          case "response.output_audio_transcript.done":
+          case "response.audio_transcript.done":
+            pushTranscript("assistant", currentAssistantTextRef.current);
+            currentAssistantTextRef.current = "";
+            setLiveCaption("");
             break;
 
           case "response.done": {
@@ -219,9 +234,9 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
       setStatus("error");
       stop();
     }
-  }, [handleToolCall, stop]);
+  }, [handleToolCall, pushTranscript, stop]);
 
   useEffect(() => () => stop(), [stop]);
 
-  return { status, liveCaption, lastUserText, suggestions, errorMessage, start, stop };
+  return { status, transcript, liveCaption, errorMessage, start, stop };
 }

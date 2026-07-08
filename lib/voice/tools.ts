@@ -1,15 +1,6 @@
 import { ADDONS, COMBOS, findMenuItem } from "@/lib/menu";
 import type { CartContextValue, DiscountType, PaymentMethod } from "@/lib/cart";
 
-/** An upsell Joy is about to offer, surfaced so the UI can show it as a card. */
-export interface UpsellSuggestion {
-  refId: string;
-  kind: "addon" | "combo";
-  name: string;
-  price: number;
-  image?: string;
-}
-
 export const TOOL_DEFINITIONS = [
   {
     type: "function",
@@ -172,7 +163,7 @@ function summarize(cart: CartContextValue) {
 
 export function createToolHandlers(
   cart: CartContextValue,
-  ui: { openCheckout: () => void; onSuggest?: (suggestions: UpsellSuggestion[]) => void }
+  ui: { openCheckout: () => void }
 ): Record<string, (args: Record<string, unknown>) => unknown> {
   return {
     add_item: ({ item_id, quantity }) => {
@@ -209,16 +200,10 @@ export function createToolHandlers(
       const addons = (item.addonIds ?? [])
         .map((id) => ADDONS.find((a) => a.id === id))
         .filter((a): a is NonNullable<typeof a> => Boolean(a));
-      ui.onSuggest?.(
-        addons.map((a) => ({ refId: a.id, kind: "addon", name: a.name, price: a.price, image: a.image }))
-      );
       return { addons: addons.map((a) => ({ addon_id: a.id, name: a.name, price: a.price })) };
     },
     suggest_combo_for_item: ({ item_id }) => {
       const combos = COMBOS.filter((c) => c.itemIds.includes(String(item_id)));
-      ui.onSuggest?.(
-        combos.map((c) => ({ refId: c.id, kind: "combo", name: c.name, price: c.price, image: c.image }))
-      );
       return {
         combos: combos.map((c) => ({ combo_id: c.id, name: c.name, price: c.price, description: c.description })),
       };
