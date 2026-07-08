@@ -1,5 +1,5 @@
 import { ADDONS, COMBOS, findMenuItem } from "@/lib/menu";
-import type { CartContextValue, DiscountType, PaymentMethod } from "@/lib/cart";
+import { computeTotals, type CartContextValue, type DiscountType, type PaymentMethod } from "@/lib/cart";
 
 /** An upsell Joy is about to offer, surfaced so the UI can show it as a card. */
 export interface UpsellSuggestion {
@@ -153,20 +153,24 @@ export const TOOL_DEFINITIONS = [
 ];
 
 function summarize(cart: CartContextValue) {
+  // getState(), not cart.state: React state lags one render behind, which fed
+  // Joy (and the on-screen cards) totals from BEFORE the action she just took.
+  const state = cart.getState();
+  const totals = computeTotals(state);
   return {
-    lines: cart.state.lines.map((l) => ({
+    lines: state.lines.map((l) => ({
       ref_id: l.refId,
       name: l.name,
       unit_price: l.unitPrice,
       quantity: l.qty,
       line_total: l.unitPrice * l.qty,
     })),
-    subtotal: cart.totals.subtotal,
-    discount: cart.state.discount,
-    discount_amount: cart.totals.discountAmount,
-    total: cart.totals.total,
-    payment_method: cart.state.paymentMethod,
-    stage: cart.state.stage,
+    subtotal: totals.subtotal,
+    discount: state.discount,
+    discount_amount: totals.discountAmount,
+    total: totals.total,
+    payment_method: state.paymentMethod,
+    stage: state.stage,
   };
 }
 
@@ -191,13 +195,13 @@ export function createToolHandlers(
       return summarize(cart);
     },
     remove_line: ({ ref_id }) => {
-      const line = cart.findLineByRef(String(ref_id));
+      const line = cart.getState().lines.find((l) => l.refId === String(ref_id));
       if (!line) return { error: `No cart line for ref_id: ${ref_id}` };
       cart.removeLine(line.lineId);
       return summarize(cart);
     },
     update_quantity: ({ ref_id, quantity }) => {
-      const line = cart.findLineByRef(String(ref_id));
+      const line = cart.getState().lines.find((l) => l.refId === String(ref_id));
       if (!line) return { error: `No cart line for ref_id: ${ref_id}` };
       cart.updateQty(line.lineId, Number(quantity));
       return summarize(cart);

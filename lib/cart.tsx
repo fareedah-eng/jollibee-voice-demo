@@ -6,6 +6,7 @@ import {
   useContext,
   useMemo,
   useReducer,
+  useRef,
   type ReactNode,
 } from "react";
 import { findAddon, findCombo, findMenuItem } from "./menu";
@@ -89,7 +90,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       }
 
       const newLine: CartLine = {
-        lineId: `${action.kind}-${action.refId}-${state.lines.length}-${Date.now() % 100000}`,
+        lineId: `${action.kind}-${action.refId}`,
         kind: action.kind,
         refId: action.refId,
         name: resolved.name,
@@ -150,6 +151,12 @@ export function computeTotals(state: Pick<CartState, "lines" | "discount">) {
 
 export interface CartContextValue {
   state: CartState;
+  /**
+   * Latest state, updated synchronously on every dispatch — React state lags
+   * a render behind, which fed Joy stale totals when a tool call read the
+   * cart right after mutating it.
+   */
+  getState: () => CartState;
   totals: { subtotal: number; discountAmount: number; total: number };
   addItem: (refId: string, qty?: number) => boolean;
   addCombo: (refId: string, qty?: number) => boolean;
@@ -168,65 +175,75 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const stateRef = useRef(initialState);
+
+  // Mirror every action through the same pure reducer so reads immediately
+  // after a dispatch (voice tool calls) see the post-action state.
+  const dispatchTracked = useCallback((action: CartAction) => {
+    stateRef.current = cartReducer(stateRef.current, action);
+    dispatch(action);
+  }, []);
+  const getState = useCallback(() => stateRef.current, []);
 
   const addItem = useCallback(
     (refId: string, qty = 1) => {
       if (!findMenuItem(refId)) return false;
-      dispatch({ type: "ADD_LINE", kind: "item", refId, qty });
+      dispatchTracked({ type: "ADD_LINE", kind: "item", refId, qty });
       return true;
     },
-    []
+    [dispatchTracked]
   );
 
   const addCombo = useCallback((refId: string, qty = 1) => {
     if (!findCombo(refId)) return false;
-    dispatch({ type: "ADD_LINE", kind: "combo", refId, qty });
+    dispatchTracked({ type: "ADD_LINE", kind: "combo", refId, qty });
     return true;
-  }, []);
+  }, [dispatchTracked]);
 
   const addAddon = useCallback((refId: string, qty = 1) => {
     if (!findAddon(refId)) return false;
-    dispatch({ type: "ADD_LINE", kind: "addon", refId, qty });
+    dispatchTracked({ type: "ADD_LINE", kind: "addon", refId, qty });
     return true;
-  }, []);
+  }, [dispatchTracked]);
 
   const removeLine = useCallback((lineId: string) => {
-    dispatch({ type: "REMOVE_LINE", lineId });
-  }, []);
+    dispatchTracked({ type: "REMOVE_LINE", lineId });
+  }, [dispatchTracked]);
 
   const updateQty = useCallback((lineId: string, qty: number) => {
-    dispatch({ type: "UPDATE_QTY", lineId, qty });
-  }, []);
+    dispatchTracked({ type: "UPDATE_QTY", lineId, qty });
+  }, [dispatchTracked]);
 
   const findLineByRef = useCallback(
     (refId: string) => state.lines.find((l) => l.refId === refId),
     [state.lines]
   );
 
-  const clearCart = useCallback(() => dispatch({ type: "CLEAR_CART" }), []);
+  const clearCart = useCallback(() => dispatchTracked({ type: "CLEAR_CART" }), [dispatchTracked]);
   const setDiscount = useCallback(
-    (discount: DiscountType) => dispatch({ type: "SET_DISCOUNT", discount }),
-    []
+    (discount: DiscountType) => dispatchTracked({ type: "SET_DISCOUNT", discount }),
+    [dispatchTracked]
   );
   const setPaymentMethod = useCallback(
-    (method: PaymentMethod) => dispatch({ type: "SET_PAYMENT_METHOD", method }),
-    []
+    (method: PaymentMethod) => dispatchTracked({ type: "SET_PAYMENT_METHOD", method }),
+    [dispatchTracked]
   );
   const setStage = useCallback(
-    (stage: OrderStage) => dispatch({ type: "SET_STAGE", stage }),
-    []
+    (stage: OrderStage) => dispatchTracked({ type: "SET_STAGE", stage }),
+    [dispatchTracked]
   );
   const confirmOrder = useCallback(() => {
     const orderNumber = `JB-${Math.floor(1000 + Math.random() * 9000)}`;
-    dispatch({ type: "CONFIRM_ORDER", orderNumber });
+    dispatchTracked({ type: "CONFIRM_ORDER", orderNumber });
     return orderNumber;
-  }, []);
+  }, [dispatchTracked]);
 
   const totals = useMemo(() => computeTotals(state), [state]);
 
   const value = useMemo<CartContextValue>(
     () => ({
       state,
+      getState,
       totals,
       addItem,
       addCombo,
@@ -242,6 +259,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }),
     [
       state,
+      getState,
       totals,
       addItem,
       addCombo,

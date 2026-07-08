@@ -266,7 +266,11 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
             break;
 
           case "input_audio_buffer.speech_started":
+            // The offer moment has passed — if they accepted, the "added"
+            // card lands right after; if they declined, the card shouldn't
+            // linger on screen.
             setStatus("listening");
+            setSuggestions([]);
             break;
 
           case "response.created":
