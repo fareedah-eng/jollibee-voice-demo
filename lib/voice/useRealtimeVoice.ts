@@ -51,6 +51,7 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const idCounterRef = useRef(0);
   const currentAssistantTextRef = useRef("");
+  const greetedRef = useRef(false);
 
   const nextId = () => {
     idCounterRef.current += 1;
@@ -67,6 +68,7 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
     pcRef.current?.getSenders().forEach((sender) => sender.track?.stop());
     pcRef.current?.close();
     streamRef.current?.getTracks().forEach((track) => track.stop());
+    audioElRef.current?.remove();
     dcRef.current = null;
     pcRef.current = null;
     streamRef.current = null;
@@ -96,9 +98,16 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
 
       const audioEl = document.createElement("audio");
       audioEl.autoplay = true;
+      audioEl.style.display = "none";
+      // In the DOM + explicit play(): detached audio elements can be silently
+      // ignored by autoplay policies, which made Joy's greeting text-only.
+      document.body.appendChild(audioEl);
       audioElRef.current = audioEl;
       pc.ontrack = (e) => {
         audioEl.srcObject = e.streams[0];
+        audioEl.play().catch(() => {
+          /* autoplay fallback — resolved by the user's start tap gesture */
+        });
       };
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -108,12 +117,14 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
       const dc = pc.createDataChannel("oai-events");
       dcRef.current = dc;
 
+      greetedRef.current = false;
       dc.addEventListener("open", () => {
         dc.send(
           JSON.stringify({
             type: "session.update",
             session: {
               type: "realtime",
+              output_modalities: ["audio"],
               instructions: buildSystemInstructions(),
               tools: TOOL_DEFINITIONS,
               tool_choice: "auto",
@@ -144,6 +155,21 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
         }
 
         switch (event.type) {
+          case "session.updated":
+            // Greet only after our instructions are confirmed applied —
+            // firing response.create immediately after session.update raced
+            // it, producing a greeting without our audio/persona config.
+            if (!greetedRef.current) {
+              greetedRef.current = true;
+              dc.send(
+                JSON.stringify({
+                  type: "response.create",
+                  response: { output_modalities: ["audio"] },
+                })
+              );
+            }
+            break;
+
           case "input_audio_buffer.speech_started":
             setStatus("listening");
             break;
