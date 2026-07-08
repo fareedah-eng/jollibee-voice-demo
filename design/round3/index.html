@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="tl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jollibee voice kiosk — round 3 design</title>
+
+  <!-- Fonts: Sora (display) + Work Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!--
+    Two states, one screen:
+      · default            = browsing (menu leads, Joy waits in the dock)
+      · .kiosk.speaking    = Joy talking (menu dims, her words become the headline)
+    The button top-right toggles between them for design review — delete it
+    (and its script + .state-toggle CSS) when wiring to the real app.
+    Images load from the deployed demo so this file works standalone.
+  -->
+  <button class="state-toggle" onclick="document.querySelector('.kiosk').classList.toggle('speaking')">
+    Toggle speaking state
+  </button>
+
+  <div class="kiosk">
+    <!-- ======== top bar ======== -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+            <circle cx="12" cy="12" r="5.2" />
+            <circle cx="12" cy="3.6" r="1.9" />
+            <circle cx="12" cy="20.4" r="1.9" />
+            <circle cx="3.6" cy="12" r="1.9" />
+            <circle cx="20.4" cy="12" r="1.9" />
+          </svg>
+        </span>
+        <b>Jollibee</b>
+      </div>
+      <span class="lang">TL / EN · Voice</span>
+    </header>
+
+    <!-- ======== rail + menu ======== -->
+    <div class="body">
+      <nav class="rail">
+        <button class="cat active"><div class="ico">🍽️</div><div class="lbl">Combos</div></button>
+        <button class="cat"><div class="ico">🍗</div><div class="lbl">Manok</div></button>
+        <button class="cat"><div class="ico">🍔</div><div class="lbl">Burgers</div></button>
+        <button class="cat"><div class="ico">🍝</div><div class="lbl">Pasta</div></button>
+        <button class="cat"><div class="ico">🍚</div><div class="lbl">Rice</div></button>
+        <button class="cat"><div class="ico">🥪</div><div class="lbl">Sandwich</div></button>
+        <button class="cat"><div class="ico">🍟</div><div class="lbl">Sides</div></button>
+        <button class="cat"><div class="ico">🍦</div><div class="lbl">Dessert</div></button>
+        <button class="cat"><div class="ico">🥤</div><div class="lbl">Inumin</div></button>
+        <button class="cat"><div class="ico">🧸</div><div class="lbl">Kids</div></button>
+      </nav>
+
+      <main class="menu">
+        <div class="menu-head">
+          <h2>Mga Combo</h2>
+          <span>6 items</span>
+        </div>
+        <div class="grid">
+          <div class="tile selected">
+            <img src="https://jollibee-voice-demo.vercel.app/menu/combo-chickenjoy-1pc.png" alt="1-pc Chickenjoy Combo" />
+            <span class="tag">Bestseller</span>
+            <span class="added">1</span>
+            <div class="name">1-pc Chickenjoy Combo</div>
+            <div class="price"><sup>₱</sup>179</div>
+          </div>
+          <div class="tile">
+            <img src="https://jollibee-voice-demo.vercel.app/menu/combo-chickenjoy-2pc.png" alt="2-pc Chickenjoy Combo" />
+            <div class="name">2-pc Chickenjoy Combo</div>
+            <div class="price"><sup>₱</sup>259</div>
+          </div>
+          <div class="tile">
+            <img src="https://jollibee-voice-demo.vercel.app/menu/combo-cheesy-yumburger.png" alt="Cheesy Yumburger Combo" />
+            <span class="tag">Bestseller</span>
+            <div class="name">Cheesy Yumburger Combo</div>
+            <div class="price"><sup>₱</sup>129</div>
+          </div>
+          <div class="tile">
+            <img src="https://jollibee-voice-demo.vercel.app/menu/combo-champ.png" alt="Champ Combo" />
+            <div class="name">Champ Combo</div>
+            <div class="price"><sup>₱</sup>199</div>
+          </div>
+          <div class="tile">
+            <img src="https://jollibee-voice-demo.vercel.app/menu/combo-jolly-spaghetti.png" alt="Jolly Spaghetti Combo" />
+            <span class="tag">Bago</span>
+            <div class="name">Jolly Spaghetti Combo</div>
+            <div class="price"><sup>₱</sup>139</div>
+          </div>
+          <div class="tile">
+            <img src="https://jollibee-voice-demo.vercel.app/menu/combo-chicken-sandwich.png" alt="Crunchy Chicken Sandwich Combo" />
+            <span class="tag">Bago</span>
+            <div class="name">Crunchy Chicken Sandwich Combo</div>
+            <div class="price"><sup>₱</sup>159</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ======== speaking state: veil + sheet ======== -->
+    <div class="veil"></div>
+    <div class="sheet">
+      <div class="who">
+        <span class="orb"></span>
+        <span>
+          <b>Joy</b>
+          <span class="st">● Nagsasalita</span>
+        </span>
+      </div>
+      <p class="joy-line">
+        Added! Gusto niyo rin po ng Peach-Mango Pie, <span class="money">₱45</span> lang?
+      </p>
+      <div class="upsell">
+        <img src="https://jollibee-voice-demo.vercel.app/menu/peach-mango-pie.png" alt="Peach-Mango Pie" />
+        <span>
+          <span class="name">Peach-Mango Pie</span><br />
+          <span class="price">₱45</span>
+        </span>
+        <span class="cue">
+          <span class="small">sabihin lang</span><br />
+          <span class="word">&ldquo;sige&rdquo; o &ldquo;oo&rdquo;</span>
+        </span>
+      </div>
+      <p class="you-line">Sinabi niyo — <b>&ldquo;Isang Chickenjoy Combo please&rdquo;</b></p>
+    </div>
+
+    <!-- ======== voice dock ======== -->
+    <footer class="dock">
+      <span class="orb"></span>
+      <span class="say">
+        <span class="hint">Nakikinig&hellip;</span>
+        <span class="words">Sabihin lang, hal. <em>&ldquo;Isang Chickenjoy Combo&rdquo;</em></span>
+      </span>
+      <span class="count">Order · 1</span>
+      <span class="total">
+        <span class="lbl">Kabuuan</span>
+        <span class="amt"><sup>₱</sup>179</span>
+      </span>
+    </footer>
+  </div>
+</body>
+</html>
