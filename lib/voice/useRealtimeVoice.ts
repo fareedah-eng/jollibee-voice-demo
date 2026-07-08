@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DISCOUNT_LABELS, useCart, type DiscountType } from "@/lib/cart";
-import { COMBOS, MENU_ITEMS, findAddon, findCombo, findMenuItem } from "@/lib/menu";
+import { findAddon, findCombo, findMenuItem, getFeaturedBestsellers } from "@/lib/menu";
 import { buildSystemInstructions } from "./prompt";
 import { createToolHandlers, TOOL_DEFINITIONS, type UpsellSuggestion } from "./tools";
 
@@ -47,21 +47,11 @@ const PAYMENT_TITLES: Record<string, string> = {
 };
 
 function bestsellersCard(id: number): ActionCard {
-  const combos = COMBOS.filter((c) => c.tags?.includes("bestseller")).map((c) => ({
-    name: c.name,
-    price: c.price,
-    image: c.image,
-  }));
-  const items = MENU_ITEMS.filter((i) => i.tags?.includes("bestseller")).map((i) => ({
-    name: i.name,
-    price: i.price,
-    image: i.image,
-  }));
   return {
     id,
     kind: "bestsellers",
     title: "Mga bestseller ngayon",
-    items: [...combos, ...items].slice(0, 3),
+    items: getFeaturedBestsellers(),
   };
 }
 

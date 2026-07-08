@@ -361,6 +361,24 @@ export const COMBOS: Combo[] = [
   },
 ];
 
+/**
+ * The three bestsellers featured in Joy's greeting AND on the welcome card —
+ * one list so what she says always matches what's on screen.
+ */
+export function getFeaturedBestsellers(): Array<{ name: string; price: number; image: string }> {
+  const combos = COMBOS.filter((c) => c.tags?.includes("bestseller")).map((c) => ({
+    name: c.name,
+    price: c.price,
+    image: c.image,
+  }));
+  const items = MENU_ITEMS.filter((i) => i.tags?.includes("bestseller")).map((i) => ({
+    name: i.name,
+    price: i.price,
+    image: i.image,
+  }));
+  return [...combos, ...items].slice(0, 3);
+}
+
 export function findMenuItem(id: string): MenuItem | undefined {
   return MENU_ITEMS.find((item) => item.id === id);
 }
