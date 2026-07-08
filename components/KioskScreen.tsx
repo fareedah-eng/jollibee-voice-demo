@@ -4,8 +4,14 @@ import { useEffect, useState } from "react";
 import { ActionFeed } from "./ActionFeed";
 import { MenuDrawer } from "./MenuDrawer";
 import { CheckoutModal } from "./CheckoutModal";
+import { TranscriptPanel } from "./TranscriptPanel";
+import { VoiceOrb } from "./VoiceOrb";
 import { useCart } from "@/lib/cart";
-import { useRealtimeVoice, type ActionCard } from "@/lib/voice/useRealtimeVoice";
+import {
+  useRealtimeVoice,
+  type ActionCard,
+  type TranscriptEntry,
+} from "@/lib/voice/useRealtimeVoice";
 import type { UpsellSuggestion } from "@/lib/voice/tools";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -23,7 +29,7 @@ const PREVIEW_ACTIONS: ActionCard[] = [
     items: [
       { name: "1-pc Chickenjoy Combo", price: 179, image: "/menu/combo-chickenjoy-1pc.png" },
       { name: "Cheesy Yumburger Combo", price: 129, image: "/menu/combo-cheesy-yumburger.png" },
-      { name: "Peach-Mango Pie", price: 45, image: "/menu/peach-mango-pie.png" },
+      { name: "1-pc Chickenjoy Solo", price: 98, image: "/menu/chickenjoy-1pc-solo.png" },
     ],
   },
   { id: 2, kind: "added", title: "1-pc Chickenjoy Combo", qty: 1, price: 179, image: "/menu/combo-chickenjoy-1pc.png", total: 179 },
@@ -35,6 +41,11 @@ const PREVIEW_SUGGESTION: UpsellSuggestion = {
   price: 45,
   image: "/menu/peach-mango-pie.png",
 };
+const PREVIEW_TRANSCRIPT: TranscriptEntry[] = [
+  { id: 1, role: "assistant", text: "Hi po, welcome sa Jollibee! Ano pong gusto niyo ngayon?" },
+  { id: 2, role: "user", text: "Isang Chickenjoy Combo po." },
+  { id: 3, role: "assistant", text: "Sige po! Gusto niyo rin po ng Peach-Mango Pie, ₱45 lang?" },
+];
 
 export function KioskScreen() {
   const cart = useCart();
@@ -57,10 +68,18 @@ export function KioskScreen() {
   const status = preview ? "listening" : voice.status;
   const actions = preview ? PREVIEW_ACTIONS : voice.actions;
   const suggestion = preview ? PREVIEW_SUGGESTION : voice.suggestions[0];
+  const transcript = preview ? PREVIEW_TRANSCRIPT : voice.transcript;
   const isActive = status === "connecting" || status === "listening" || status === "speaking";
 
+  const itemCount = cart.state.lines.reduce((n, l) => n + l.qty, 0);
+  const showTotal = (preview || itemCount > 0) && isActive;
+  const totalValue = preview ? 179 : cart.totals.total;
+  const totalCount = preview ? 1 : itemCount;
+
   return (
-    <div className="h-screen flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_300px] overflow-hidden">
+    <div className="h-screen flex flex-col lg:grid lg:grid-cols-[auto_minmax(0,1fr)_min(38vw,560px)] overflow-hidden">
+      <TranscriptPanel entries={transcript} />
+
       {/* ================= voice stage ================= */}
       <section className="relative flex-1 lg:flex-none bg-gradient-to-br from-jb-red to-jb-red-dark text-white flex flex-col min-h-0">
         <header className="flex items-center justify-between px-5 py-4 shrink-0">
@@ -78,29 +97,11 @@ export function KioskScreen() {
         </header>
 
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-6 pb-6 overflow-y-auto">
-          {/* orb — tap to start/stop */}
-          <button
+          <VoiceOrb
+            status={status}
             onClick={() => (isActive ? voice.stop() : voice.start())}
-            aria-label={isActive ? "Tapusin ang order" : "Simulan ang pag-order gamit ang boses"}
-            className={`relative rounded-full shrink-0 transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-white/50 ${
-              isActive ? "w-16 h-16" : "w-28 h-28"
-            }`}
-          >
-            <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_35%_30%,#FFD34D,#FFC72C_70%)]" />
-            {status === "listening" && (
-              <span className="absolute -inset-2 rounded-full border-2 border-jb-yellow/70 animate-pulse" />
-            )}
-            {status === "speaking" && (
-              <span className="absolute -inset-2 rounded-full border-2 border-white animate-ping" />
-            )}
-            <span
-              className={`absolute inset-0 flex items-center justify-center ${
-                isActive ? "text-2xl" : "text-5xl"
-              }`}
-            >
-              🎙️
-            </span>
-          </button>
+            getLevel={preview ? () => 0 : voice.getAudioLevel}
+          />
 
           {!isActive ? (
             <>
@@ -118,7 +119,17 @@ export function KioskScreen() {
               </p>
             </>
           ) : (
-            <ActionFeed actions={actions} suggestion={suggestion} />
+            <>
+              <ActionFeed actions={actions} suggestion={suggestion} />
+              {showTotal && (
+                <div className="text-center">
+                  <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-white/65">
+                    Kabuuan · {totalCount} item
+                  </p>
+                  <p className="font-extrabold text-4xl leading-tight">₱{totalValue}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
 

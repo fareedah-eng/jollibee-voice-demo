@@ -8,6 +8,12 @@ import { createToolHandlers, TOOL_DEFINITIONS, type UpsellSuggestion } from "./t
 
 export type VoiceStatus = "idle" | "connecting" | "listening" | "speaking" | "error";
 
+export interface TranscriptEntry {
+  id: number;
+  role: "user" | "assistant";
+  text: string;
+}
+
 /**
  * A fact card shown on the voice stage — the screen shows only what happened
  * (items, prices, totals); Joy's voice carries everything else.
@@ -66,6 +72,7 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actions, setActions] = useState<ActionCard[]>([]);
   const [suggestions, setSuggestions] = useState<UpsellSuggestion[]>([]);
+  const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
 
   const uiRef = useRef({ openCheckout, onSuggest: setSuggestions });
   useEffect(() => {
@@ -78,11 +85,59 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const idCounterRef = useRef(0);
   const greetedRef = useRef(false);
+  const assistantTextRef = useRef("");
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analysersRef = useRef<AnalyserNode[]>([]);
+  const levelDataRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
 
   const nextId = () => {
     idCounterRef.current += 1;
     return idCounterRef.current;
   };
+
+  const pushTranscript = useCallback((role: "user" | "assistant", text: string) => {
+    if (!text.trim()) return;
+    idCounterRef.current += 1;
+    const id = idCounterRef.current;
+    setTranscript((prev) => [...prev.slice(-30), { id, role, text: text.trim() }]);
+  }, []);
+
+  /**
+   * Instantaneous loudness (0..1) across mic + Joy's voice — read per-frame by
+   * the orb's ring animation, deliberately NOT React state (60fps updates).
+   */
+  const getAudioLevel = useCallback(() => {
+    let max = 0;
+    for (const analyser of analysersRef.current) {
+      if (!levelDataRef.current || levelDataRef.current.length < analyser.fftSize) {
+        levelDataRef.current = new Uint8Array(new ArrayBuffer(analyser.fftSize));
+      }
+      const data = levelDataRef.current;
+      analyser.getByteTimeDomainData(data);
+      let sum = 0;
+      for (let i = 0; i < analyser.fftSize; i++) {
+        const v = (data[i] - 128) / 128;
+        sum += v * v;
+      }
+      max = Math.max(max, Math.sqrt(sum / analyser.fftSize));
+    }
+    return Math.min(max * 2.5, 1);
+  }, []);
+
+  const attachAnalyser = useCallback((stream: MediaStream) => {
+    try {
+      const ctx = audioCtxRef.current ?? new AudioContext();
+      audioCtxRef.current = ctx;
+      ctx.resume().catch(() => {});
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+      analysersRef.current.push(analyser);
+    } catch {
+      // audio analysis is progressive enhancement — rings just stay static
+    }
+  }, []);
 
   const pushAction = useCallback((card: Omit<ActionCard, "id">) => {
     setActions((prev) => [...prev.slice(-3), { ...card, id: idCounterRef.current + 1 }]);
@@ -95,12 +150,16 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
     pcRef.current?.close();
     streamRef.current?.getTracks().forEach((track) => track.stop());
     audioElRef.current?.remove();
+    audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
+    analysersRef.current = [];
     dcRef.current = null;
     pcRef.current = null;
     streamRef.current = null;
     audioElRef.current = null;
     setActions([]);
     setSuggestions([]);
+    setTranscript([]);
     setStatus("idle");
   }, []);
 
@@ -201,11 +260,13 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
         audioEl.play().catch(() => {
           /* autoplay fallback — resolved by the user's start tap gesture */
         });
+        attachAnalyser(e.streams[0]);
       };
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+      attachAnalyser(stream);
 
       const dc = pc.createDataChannel("oai-events");
       dcRef.current = dc;
@@ -273,8 +334,24 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
             setSuggestions([]);
             break;
 
+          case "conversation.item.input_audio_transcription.completed":
+            if (typeof event.transcript === "string") pushTranscript("user", event.transcript);
+            break;
+
           case "response.created":
+            assistantTextRef.current = "";
             setStatus("speaking");
+            break;
+
+          case "response.output_audio_transcript.delta":
+          case "response.audio_transcript.delta":
+            if (typeof event.delta === "string") assistantTextRef.current += event.delta;
+            break;
+
+          case "response.output_audio_transcript.done":
+          case "response.audio_transcript.done":
+            pushTranscript("assistant", assistantTextRef.current);
+            assistantTextRef.current = "";
             break;
 
           case "response.done": {
@@ -338,9 +415,9 @@ export function useRealtimeVoice({ openCheckout }: { openCheckout: () => void })
       setStatus("error");
       stop();
     }
-  }, [handleToolCall, pushAction, stop]);
+  }, [attachAnalyser, handleToolCall, pushAction, pushTranscript, stop]);
 
   useEffect(() => () => stop(), [stop]);
 
-  return { status, actions, suggestions, errorMessage, start, stop };
+  return { status, actions, suggestions, transcript, errorMessage, getAudioLevel, start, stop };
 }

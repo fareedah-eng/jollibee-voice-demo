@@ -17,7 +17,7 @@ interface Row {
  * Nothing here is tappable — ordering happens entirely through Joy.
  */
 export function MenuDrawer() {
-  const { findLineByRef, totals, state } = useCart();
+  const { findLineByRef } = useCart();
 
   const groups: Array<{ label: string; rows: Row[] }> = CATEGORIES.map((cat) => ({
     label: cat.labelTl,
@@ -32,8 +32,6 @@ export function MenuDrawer() {
           })),
   })).filter((g) => g.rows.length > 0);
 
-  const itemCount = state.lines.reduce((n, l) => n + l.qty, 0);
-
   return (
     <aside className="bg-background text-foreground border-l border-[#EDE7DD] flex flex-col min-h-0">
       <div className="px-4 pt-3.5 pb-2 flex items-baseline justify-between shrink-0">
@@ -47,6 +45,7 @@ export function MenuDrawer() {
             <p className="text-[9.5px] font-semibold uppercase tracking-widest text-neutral-400 px-1.5 pt-2.5 pb-1 sticky top-0 bg-background">
               {group.label}
             </p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-3">
             {group.rows.map((row) => {
               const line = findLineByRef(row.id);
               return (
@@ -74,13 +73,9 @@ export function MenuDrawer() {
                 </div>
               );
             })}
+            </div>
           </div>
         ))}
-      </div>
-
-      <div className="border-t border-dashed border-[#E2DACD] mx-3 py-3 flex items-baseline justify-between shrink-0">
-        <span className="text-[11px] text-neutral-400">Kabuuan · {itemCount} item</span>
-        <span className="font-bold text-lg">₱{totals.total}</span>
       </div>
     </aside>
   );

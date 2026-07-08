@@ -25,3 +25,22 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes ring-expand {
+  from { transform: scale(1); opacity: var(--ring-o, 0.6); }
+  to { transform: scale(var(--ring-s, 2.4)); opacity: 0; }
+}
+
+.voice-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  animation: ring-expand 0.9s ease-out forwards;
+  pointer-events: none;
+}
