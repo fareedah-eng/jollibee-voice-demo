@@ -38,6 +38,8 @@ export interface Addon {
   category: "drink" | "side" | "dessert" | "upsize";
   /** Reuses the matching menu item's photo where one exists. */
   image?: string;
+  /** Short appetising sell-line Joy uses when pitching this add-on. */
+  pitch?: string;
 }
 
 export interface Combo {
@@ -64,14 +66,14 @@ export const CATEGORIES: Category[] = [
 ];
 
 export const ADDONS: Addon[] = [
-  { id: "addon-coke-regular", name: "Coke Regular", price: 45, category: "drink", image: "/menu/coke-regular.png" },
-  { id: "addon-coke-float", name: "Coke Float", price: 60, category: "drink", image: "/menu/coke-float.png" },
-  { id: "addon-iced-tea", name: "Iced Tea", price: 45, category: "drink", image: "/menu/iced-tea.png" },
-  { id: "addon-fries-regular", name: "Regular Fries", price: 55, category: "side", image: "/menu/fries-regular.png" },
-  { id: "addon-gravy", name: "Extra Gravy", price: 25, category: "side" },
-  { id: "addon-peach-mango-pie", name: "Peach-Mango Pie", price: 45, category: "dessert", image: "/menu/peach-mango-pie.png" },
-  { id: "addon-sundae-chocolate", name: "Chocolate Sundae", price: 49, category: "dessert", image: "/menu/chocolate-sundae.png" },
-  { id: "addon-upsize-drink", name: "Upsize Drink", price: 15, category: "upsize" },
+  { id: "addon-coke-regular", name: "Coke Regular", price: 45, category: "drink", image: "/menu/coke-regular.png" , pitch: "Ice-cold Coke — panghugas ng crispy Chickenjoy" },
+  { id: "addon-coke-float", name: "Coke Float", price: 60, category: "drink", image: "/menu/coke-float.png" , pitch: "Coke Float — may creamy vanilla ice cream sa ibabaw, paborito ng lahat" },
+  { id: "addon-iced-tea", name: "Iced Tea", price: 45, category: "drink", image: "/menu/iced-tea.png" , pitch: "House-blend iced tea, panlaban sa init" },
+  { id: "addon-fries-regular", name: "Regular Fries", price: 55, category: "side", image: "/menu/fries-regular.png" , pitch: "Crispy golden fries, bagong luto" },
+  { id: "addon-gravy", name: "Extra Gravy", price: 25, category: "side" , pitch: "Extra gravy — para sawsawan hanggang huling kagat" },
+  { id: "addon-peach-mango-pie", name: "Peach-Mango Pie", price: 45, category: "dessert", image: "/menu/peach-mango-pie.png" , pitch: "Mainit-init at crispy pa, may sweet peach-mango filling — perfect pang-dessert" },
+  { id: "addon-sundae-chocolate", name: "Chocolate Sundae", price: 49, category: "dessert", image: "/menu/chocolate-sundae.png" , pitch: "Creamy vanilla sundae na may chocolate syrup — pampatamis ng araw" },
+  { id: "addon-upsize-drink", name: "Upsize Drink", price: 15, category: "upsize" , pitch: "Upsize na lang para mas sulit" },
 ];
 
 export const MENU_ITEMS: MenuItem[] = [

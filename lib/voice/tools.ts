@@ -212,7 +212,7 @@ export function createToolHandlers(
       ui.onSuggest?.(
         addons.map((a) => ({ refId: a.id, kind: "addon", name: a.name, price: a.price, image: a.image }))
       );
-      return { addons: addons.map((a) => ({ addon_id: a.id, name: a.name, price: a.price })) };
+      return { addons: addons.map((a) => ({ addon_id: a.id, name: a.name, price: a.price, pitch: a.pitch })) };
     },
     suggest_combo_for_item: ({ item_id }) => {
       const combos = COMBOS.filter((c) => c.itemIds.includes(String(item_id)));
